@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="../lib/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="../lib/bootstrap.js"></script>
+
+    <script type="text/javascript" src="showme.js"></script>
+    <link rel="stylesheet" href="../styles/bootstrap.css">
+
+</head>
+
+<body>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <p>Change this Trello board's background</p>
+        </div>
+        <div class="panel-body">
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-btn">
+                    <input id="buttonSaveBackground" type="button" class="btn btn-success" title="Set this Trello board background image." data-action="getAndSetTheBackgroundImage" value="Save" />
+                </span>
+                        <input id="textTrelloBackgroundUrl" type="text" class="form-control" title="Please choose a valid url to a image." placeholder="ex. http://placekitten.com/1200/800/" />
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
