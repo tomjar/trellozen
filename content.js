@@ -30,7 +30,6 @@ function setBoardBackground(url) {
  */
 function setBoardTiles() {
     'use strict';
-    console.log("setting board tiles!");
     browser.storage.local.get("backgroundsBoardList", function(items) {
         var patt = new RegExp(/\/b\/([\d\w]+)\/[\S]+/i);
         var compactBoardTilesList = document.querySelectorAll('li.compact-board-tile a.js-open-board');
