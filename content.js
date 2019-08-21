@@ -18,9 +18,8 @@ function outLog(obj) {
 function setBoardBackground(url) {
     'use strict';
     if (url !== '') {
-        // outLog(sendisemptymessage.response)
-        document.querySelector('#classic-body').style.background = '#000 url(' + url + ') no-repeat';
-        document.querySelector('#classic-body').style.backgroundSize = 'cover';
+        document.querySelector('#trello-root').style.background = '#000 url(' + url + ') no-repeat';
+        document.querySelector('#trello-root').style.backgroundSize = 'cover';
     }
 }
 
@@ -30,7 +29,7 @@ function setBoardBackground(url) {
  */
 function setBoardTiles() {
     'use strict';
-    browser.storage.local.get("backgroundsBoardList", function(items) {
+    browser.storage.local.get("backgroundsBoardList", function (items) {
         var patt = new RegExp(/\/b\/([\d\w]+)\/[\S]+/i);
         var compactBoardTilesList = document.querySelectorAll('li.compact-board-tile a.js-open-board');
 
@@ -60,7 +59,7 @@ function setBoardTiles() {
  * the pages do not entirely reload each time so this method will only be called once per trello session unless the user refreshes
  * the page of course.
  */
-$(document).ready(function() {
+$(document).ready(function () {
     setBoardTiles();
 });
 
@@ -72,8 +71,8 @@ $(document).ready(function() {
 function getAndSetTheBackgroundImage() {
     'use strict';
     var url = window.location.href;
-    browser.runtime.sendMessage({ action: "parseboardid", obj: url }, function(sendparseid) {
-        browser.storage.local.get("backgroundsBoardList", function(items) {
+    browser.runtime.sendMessage({ action: "parseboardid", obj: url }, function (sendparseid) {
+        browser.storage.local.get("backgroundsBoardList", function (items) {
             for (var i = 0; i < items.backgroundsBoardList.length; i++) {
                 if (items.backgroundsBoardList[i].boardid.toLowerCase() === sendparseid.response.toLowerCase()) {
                     if (items.backgroundsBoardList[i].url !== '') {

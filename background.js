@@ -16,36 +16,7 @@ function parseTrelloBoardId(url, callback) {
     } else {
         trelloBoardId = '';
     }
-
     callback({ response: trelloBoardId.toString() });
-}
-
-/**
- * This function determines if we are currently in the correct trello domain and area, 
- * this helps control when to show the page action icon
- * i am aware of settings that could be set for my background scrip to control when it is ran but
- * I do not believe this is alos the case for Chrome.
- * @param {*} url the current browsers current url
- * @param {*} callback a callback function to run if we are indeed in the trello domain.
- */
-function inTheTrelloDomain(url, callback) {
-    'use strict';
-    var patt = new RegExp(/https:\/\/*.trello.com\/b\//i),
-        match = patt.exec(url);
-    if (match !== null) {
-        callback();
-    }
-}
-
-/**
- * This function determines whether or not we should show the page action.
- * @param {*} tab the current tab object
- */
-function showTrelloZen(tab) {
-    'use strict';
-    inTheTrelloDomain(tab.url, function() {
-        browser.pageAction.show(tab.id);
-    });
 }
 
 /**
@@ -53,10 +24,10 @@ function showTrelloZen(tab) {
  * constantly checking if the array had been initialized i have since made so we only have to check in one area.
  */
 function initStorage() {
-    browser.storage.local.get("backgroundsBoardList", function(items) {
+    browser.storage.local.get("backgroundsBoardList", function (items) {
         if (Array.isArray(items.backgroundsBoardList) === false) {
             items.backgroundsBoardList = [];
-            browser.storage.local.set({ backgroundsBoardList: items.backgroundsBoardList }, function() {
+            browser.storage.local.set({ backgroundsBoardList: items.backgroundsBoardList }, function () {
                 console.log('The storage array has been initialized.');
             });
         }
@@ -74,7 +45,6 @@ function initStorage() {
 function handleTabOnUpdated(tabId, changeInfo, tab) {
     'use strict';
     if (changeInfo.status === 'complete') {
-        showTrelloZen(tab);
         initStorage();
         var actionObj = { action: "getAndSetTheBackgroundImage" },
             action2Obj = { action: "setBoardTiles" };
