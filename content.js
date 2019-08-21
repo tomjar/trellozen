@@ -18,6 +18,7 @@ function outLog(obj) {
 function setBoardBackground(url) {
     'use strict';
     if (url !== '') {
+        // note: keep a eye on the ids on the div to set the background image
         document.querySelector('#trello-root').style.background = '#000 url(' + url + ') no-repeat';
         document.querySelector('#trello-root').style.backgroundSize = 'cover';
     }
@@ -26,6 +27,7 @@ function setBoardBackground(url) {
 /**
  * This function sets the trello board tiles image links on the left area of the trello website. Iterates over the 
  * elements until a matching board id is found and sets the image, then exits the loop.
+ * BROKEN!!! no longer works Trello is doing something weird with their div class names! - Aug 21 2019
  */
 function setBoardTiles() {
     'use strict';

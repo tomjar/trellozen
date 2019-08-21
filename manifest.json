@@ -22,7 +22,7 @@
         "browser_style": true,
         "default_icon": "icons/trellozen-32.png",
         "default_title": "Change this Trello boards background.",
-        "default_popup": "popup/showme.html",
+        "default_popup": "popup/page-action-popup.html",
         "show_matches": [
             "https://*.trello.com/*"
         ]
