@@ -1,8 +1,8 @@
 # trellozen
 Available for install at https://addons.mozilla.org/en-US/firefox/addon/trellozen/
 
-* Tired of that default blue background? Set a custom background image for every Trello Board.
-* Allows you to override a custom background for the Trello board.
+* Tired of the Trello board owner setting a lame background? Well look no further friend!
+* Allows you to override a custom background for multiple Trello boards.
 * Choose any valid image URL from anywhere on web
 
 ## Getting Started
@@ -33,7 +33,7 @@ Firefox
 
 ## License
 
-* 
+* MIT
 
 ## Acknowledgments
 
