@@ -1,6 +1,7 @@
 /*jslint indent: 2 */
 /*global browser, document, setTimeout, console*/
 
+
 /**
  * This function retrieves the trello board id from the url provided.
  * @param {*} url the browsers current trello board url
@@ -81,7 +82,7 @@ if (browser.tabs.onUpdated.hasListener(handleTabOnUpdated) === false) {
     browser.tabs.onUpdated.addListener(
         handleTabOnUpdated,
         {
-            urls: ['https://trello.com/b/*'],
+            urls: ['https://*.trello.com/b/*'],
             properties: ['status']
         });
 }
@@ -96,8 +97,12 @@ if (browser.tabs.onUpdated.hasListener(handleTabOnUpdated) === false) {
  */
 function handleMessage_background(request, sender, sendResponse) {
     'use strict';
-    if (request.action === 'parseboardid') {
+    if (request.action === 'PARSE_BOARD_ID') {
         parseTrelloBoardId(request.obj, sendResponse);
+    } else if (request.action === 'SET_HAS_BG_IMAGE_BEEN_SET') {
+        setHasBgImageBeenSet(request.obj, sendResponse);
+    } else if (request.action === 'GET_HAS_BG_IMAGE_BEEN_SET') {
+        getHasBgImageBeenSet(sendResponse);
     }
 }
 

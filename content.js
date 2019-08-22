@@ -17,23 +17,18 @@ function outLog(obj) {
  */
 function setBoardBackground(url) {
     'use strict';
-    browser.storage.local.get("backgroundsBoardList", function (items) {
-        console.log(items);
-    });
-    if (url !== '') {
-        let targetDiv = '#trello-root',
-            bg = '#000 url(' + url + ') no-repeat',
-            bgSize = '100% auto',
-            currentBg = document.querySelector(targetDiv).style.background;
 
-        if (bg !== currentBg) {
-            console.log(currentBg);
-            console.log(bg);
+    let targetDiv = '#trello-root',
+        bg = 'rgb(0, 0, 0) url("' + url + '") no-repeat',
+        bgSize = '100% auto',
+        currentBg = document.querySelector(targetDiv).style.background;
 
-            console.log('set the bg for trello board');
-            document.querySelector(targetDiv).style.background = bg;
-            document.querySelector(targetDiv).style.backgroundSize = bgSize;
-        }
+    if (currentBg.toString().indexOf(url.toString()) === -1) {
+        console.log(currentBg);
+        console.log(bg);
+
+        document.querySelector(targetDiv).style.background = bg;
+        document.querySelector(targetDiv).style.backgroundSize = bgSize;
     }
 }
 
@@ -78,7 +73,7 @@ function setBoardTiles() {
 function getAndSetTheBackgroundImage() {
     'use strict';
     var url = window.location.href;
-    browser.runtime.sendMessage({ action: "parseboardid", obj: url }, function (sendparseid) {
+    browser.runtime.sendMessage({ action: "PARSE_BOARD_ID", obj: url }, function (sendparseid) {
         browser.storage.local.get("backgroundsBoardList", function (items) {
             for (var i = 0; i < items.backgroundsBoardList.length; i++) {
                 if (items.backgroundsBoardList[i].boardid.toLowerCase() === sendparseid.response.toLowerCase()) {
@@ -86,6 +81,7 @@ function getAndSetTheBackgroundImage() {
                         setBoardBackground(items.backgroundsBoardList[i].url);
                         return false;
                     }
+                    return false;
                 }
             }
         });
@@ -111,4 +107,6 @@ function handleMessage_content(request, sender, sendResponse) {
 // Assign function listener as a listener for messages from the extension.
 // receives messages from showme.js and background.js to apply changes to the users browser
 // after certain actions and event occur
-browser.runtime.onMessage.addListener(handleMessage_content);
+if (browser.runtime.onMessage.hasListener(handleMessage_content) === false) {
+    browser.runtime.onMessage.addListener(handleMessage_content);
+}

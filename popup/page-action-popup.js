@@ -44,24 +44,39 @@ function saveBackground(element) {
     // getting the active tab
     browser.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         // getting the trello board id out of the url
-        browser.runtime.sendMessage({ action: "parseboardid", obj: tabs[0].url }, function (sendparsemessage) {
-            var trelloBoardId = sendparsemessage.response;
+        browser.runtime.sendMessage({ action: "PARSE_BOARD_ID", obj: tabs[0].url }, function (sendparsemessage) {
+            let trelloBoardId = sendparsemessage.response;
             if (trelloBoardId === '') {
                 // no parsed trello boardId, just return
                 handleError('No Trello boardId was parsed!');
             } else {
                 // getting the storage array and adding the new bg image for this trello board
                 browser.storage.local.get("backgroundsBoardList", function (items) {
-                    var bgPath = document.getElementById('textTrelloBackgroundUrl').value,
-                        boardBackgroundUrlObj = { url: bgPath, boardid: trelloBoardId };
+                    let bgURL = document.getElementById('textTrelloBackgroundUrl').value,
+                        boardBackgroundUrlObj = { url: bgURL, boardid: trelloBoardId };
 
                     if (boardBackgroundUrlObj.url === '') {
                         handleError('No image url was provided! Url was not saved for this board.');
                     } else {
-                        items.backgroundsBoardList.push(boardBackgroundUrlObj);
+
+                        let currentTzBoardBgIndex = items.backgroundsBoardList.findIndex(function (element) {
+                            return element.boardid === trelloBoardId;
+                        });
+
+                        if (currentTzBoardBgIndex === -1) {
+                            items.backgroundsBoardList.push(boardBackgroundUrlObj);
+                        } else {
+                            boardBackgroundUrlObj.url = bgURL;
+                        }
+
+                        console.log(currentTzBoardBgIndex);
+                        console.log(boardBackgroundUrlObj);
+
+                        items.backgroundsBoardList[currentTzBoardBgIndex] = boardBackgroundUrlObj;
+
                         browser.storage.local.set({ backgroundsBoardList: items.backgroundsBoardList }, function () {
-                            var setBodyBgObj = { action: element.getAttribute("data-action"), backgroundpath: bgPath.value },
-                                setBgTilesObj = { action: "setBoardTiles", backgroundpath: bgPath.value };
+                            var setBodyBgObj = { action: element.getAttribute("data-action"), backgroundpath: bgURL },
+                                setBgTilesObj = { action: "setBoardTiles", backgroundpath: bgURL };
 
                             browser.tabs.sendMessage(tabs[0].id, setBodyBgObj);
                             browser.tabs.sendMessage(tabs[0].id, setBgTilesObj);
