@@ -1,7 +1,8 @@
 {
     "manifest_version": 2,
     "name": "trellozen",
-    "version": "1.0.1",
+    "author": "Thomas Reese",
+    "version": "1.0.2",
     "description": "Allows you to also set a custom background to each individual Trello Board using any available image URL from the web.",
     "icons": {
         "48": "icons/trellozen-48.png",
@@ -10,10 +11,9 @@
     "content_scripts": [
         {
             "matches": [
-                "https://*.trello.com/*"
+                "https://*.trello.com/b/*"
             ],
             "js": [
-                "lib/jquery-3.3.1.js",
                 "content.js"
             ]
         }
@@ -24,7 +24,7 @@
         "default_title": "Change this Trello boards background.",
         "default_popup": "popup/page-action-popup.html",
         "show_matches": [
-            "https://*.trello.com/*"
+            "https://*.trello.com/b/*"
         ]
     },
     "background": {

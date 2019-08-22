@@ -20,18 +20,34 @@ function parseTrelloBoardId(url, callback) {
 }
 
 /**
+ * This function determines if we are currently in the correct trello domain. This controls
+ * whether or not the tab updated event should attempt to set the background.
+ * @param {*} url the current browsers current url
+ * @param {*} callback a callback function to run if we are indeed in the trello domain.
+ */
+function inTheTrelloDomain(url, callback) {
+    'use strict';
+    var patt = new RegExp(/https:\/\/*.trello.com\/b\//i),
+        match = patt.exec(url);
+    if (match !== null) {
+        callback();
+    }
+}
+
+/**
  * This function initializes the storage for the board image urls. Previously I was
  * constantly checking if the array had been initialized i have since made so we only have to check in one area.
  */
-function initStorage() {
-    browser.storage.local.get("backgroundsBoardList", function (items) {
-        if (Array.isArray(items.backgroundsBoardList) === false) {
-            items.backgroundsBoardList = [];
-            browser.storage.local.set({ backgroundsBoardList: items.backgroundsBoardList }, function () {
-                console.log('The storage array has been initialized.');
-            });
-        }
-    });
+function initTrellozenLocalStorage() {
+    browser.storage.local.get(["backgroundsBoardList"],
+        function (item) {
+            let isTrellozenLocalStorageInit = typeof item.backgroundsBoardList === 'undefined';
+            if (isTrellozenLocalStorageInit) {
+                browser.storage.local.set({ backgroundsBoardList: [] }, function () {
+                    console.log('The storage array has been initialized.');
+                });
+            }
+        });
 }
 
 /**
@@ -44,18 +60,31 @@ function initStorage() {
  */
 function handleTabOnUpdated(tabId, changeInfo, tab) {
     'use strict';
-    if (changeInfo.status === 'complete') {
-        initStorage();
-        var actionObj = { action: "getAndSetTheBackgroundImage" },
-            action2Obj = { action: "setBoardTiles" };
+    if (changeInfo.status === 'complete' && tab.status === 'complete') {
+        inTheTrelloDomain(tab.url, function () {
 
-        browser.tabs.sendMessage(tabId, actionObj);
-        browser.tabs.sendMessage(tabId, action2Obj);
+            initTrellozenLocalStorage();
+
+            var actionObj = { action: "getAndSetTheBackgroundImage" },
+                action2Obj = { action: "setBoardTiles" };
+
+
+            browser.tabs.sendMessage(tabId, actionObj);
+            // browser.tabs.sendMessage(tabId, action2Obj);
+
+        });
     }
 }
 
 // assigning the function as a listener
-browser.tabs.onUpdated.addListener(handleTabOnUpdated);
+if (browser.tabs.onUpdated.hasListener(handleTabOnUpdated) === false) {
+    browser.tabs.onUpdated.addListener(
+        handleTabOnUpdated,
+        {
+            urls: ['https://trello.com/b/*'],
+            properties: ['status']
+        });
+}
 
 /**
  * This function receives messages from content.js
@@ -73,4 +102,6 @@ function handleMessage_background(request, sender, sendResponse) {
 }
 
 // assigning the function as a listener
-browser.runtime.onMessage.addListener(handleMessage_background);
+if (browser.runtime.onMessage.hasListener(handleMessage_background) === false) {
+    browser.runtime.onMessage.addListener(handleMessage_background);
+}

@@ -14,7 +14,7 @@ Download the correct Web Extension for the browser you wish to use,
    2. "Load Temporary Add-on", in the file explorer open the manifest.json file.
    3. The Web Extension is now loaded temporarily until you close your browser.
    4. Log into https://trello.com and try adding a few cards and adding (.5) to some of the titles of the cards.
-   5. While on a Trello board the temple icon will apear allowing you to set the background to a valid URL.
+   5. While on a Trello board the TZ icon will apoear towards the right of your browsers URL bar, click it and a popup will allow you to provide a image URL.
 
 ### Prerequisites
 
