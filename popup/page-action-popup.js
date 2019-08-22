@@ -8,7 +8,7 @@ window.onload = function () {
     'use strict';
     browser.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
-        browser.runtime.sendMessage({ action: "parseboardid", obj: tabs[0].url }, function (sendparsemessage) {
+        browser.runtime.sendMessage({ action: "PARSE_BOARD_ID", obj: tabs[0].url }, function (sendparsemessage) {
             browser.storage.local.get("backgroundsBoardList", function (items) {
 
                 for (var i = 0; i < items.backgroundsBoardList.length; i++) {
