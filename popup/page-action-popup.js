@@ -58,7 +58,10 @@ function saveBackground(url) {
                         url: url,
                         boardid: parsedBoardId,
                         css: `#trello-root { background: rgb(0, 0, 0) url("${url}") no-repeat scroll 0% 0% / 100% auto !important;}`
-                    };
+                    },
+                        cssArr = items.backgroundsBoardList.map(function (element) {
+                            return element.css;
+                        });
 
                     if (boardBackgroundUrlObj.url === '') {
                         handleError('No image url was provided! Url was not saved for this board.');
@@ -70,12 +73,12 @@ function saveBackground(url) {
 
                         if (currentTzBoardBgIndex === -1) {
                             items.backgroundsBoardList.push(boardBackgroundUrlObj);
+                        } else {
+                            items.backgroundsBoardList[currentTzBoardBgIndex] = boardBackgroundUrlObj;
+                            browser.runtime.sendMessage({ action: "REMOVE_CSS", cssArr: cssArr, tabId: tabs[0].id });
                         }
 
-                        console.log(currentTzBoardBgIndex);
-                        console.log(boardBackgroundUrlObj);
-
-                        items.backgroundsBoardList[currentTzBoardBgIndex] = boardBackgroundUrlObj;
+                        console.log(items.backgroundsBoardList);
 
                         browser.storage.local.set({ backgroundsBoardList: items.backgroundsBoardList }, function () {
                             browser.runtime.sendMessage({ action: "SET_BG", css: boardBackgroundUrlObj.css, tabId: tabs[0].id });

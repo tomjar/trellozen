@@ -29,12 +29,14 @@ function parseTrelloBoardId(url, callback) {
     callback(trelloBoardId.toString());
 }
 
-function setTheBoardsBg(tabId, css) {
+function insertBoardCss(tabId, css) {
     browser.tabs.insertCSS(tabId, { code: css });
 }
 
-function removeTheBoardsBg(tabId, css) {
-    browser.tabs.removeCSS(tabId, { code: css });
+function removeBoardCss(tabId, cssArr) {
+    for (let i = 0; i < cssArr.length; i++) {
+        browser.tabs.removeCSS(tabId, { code: cssArr[i] });
+    }
 }
 
 /**
@@ -119,13 +121,17 @@ function handleTabOnUpdated(tabId, changeInfo, tab) {
                 if (changeInfo.status === 'complete') {
                     let board = items.backgroundsBoardList.find(function (element) {
                         return element.boardid.toString() === parsedBoardid.toString();
-                    });
+                    }),
+                        boardCssArr = items.backgroundsBoardList.map(function (element) {
+                            return element.css;
+                        });
 
                     if (typeof board !== 'undefined') {
                         console.log(items.backgroundsBoardList);
-                        removeTheBoardsBg(tabId, board.css);
-                        setTheBoardsBg(tabId, board.css);
-
+                        removeBoardCss(tabId, boardCssArr);
+                        insertBoardCss(tabId, board.css);
+                    } else {
+                        removeBoardCss(tabId, boardCssArr);
                     }
                 }
             });
@@ -154,12 +160,23 @@ if (browser.tabs.onUpdated.hasListener(handleTabOnUpdated) === false) {
  */
 function handleMessage_background(request, sender, sendResponse) {
     'use strict';
-    if (request.action === 'PARSE_BOARD_ID') {
-        parseTrelloBoardId(request.obj, sendResponse);
-    } else if (request.action === 'SET_BG') {
-        setTheBoardsBg(request.tabId, request.css);
-    } else if (request.action === 'SET_BOARD_TILES') {
-        // TODO
+    switch (request.action) {
+        case 'PARSE_BOARD_ID': {
+            parseTrelloBoardId(request.obj, sendResponse);
+            break;
+        }
+        case 'SET_BG': {
+            insertBoardCss(request.tabId, request.css);
+            break;
+        }
+        case 'SET_BOARD_TILES': {
+            // TODO
+            break;
+        }
+        case 'REMOVE_CSS': {
+            removeBoardCss(request.tabId, request.cssArr);
+            break;
+        }
     }
 }
 
