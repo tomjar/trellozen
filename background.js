@@ -1,6 +1,15 @@
 /*jslint indent: 2 */
 /*global browser, document, setTimeout, console*/
 
+function handleError(error) {
+    var tempErrObj = { type: "ERROR", message: error };
+    console.log(tempErrObj);
+}
+
+function outLog(obj) {
+    var tempObj = { type: "LOG", logged: obj };
+    console.log(tempObj);
+}
 
 /**
  * This function retrieves the trello board id from the url provided.
@@ -17,7 +26,47 @@ function parseTrelloBoardId(url, callback) {
     } else {
         trelloBoardId = '';
     }
-    callback({ response: trelloBoardId.toString() });
+    callback(trelloBoardId.toString());
+}
+
+function setTheBoardsBg(tabId, css) {
+    browser.tabs.insertCSS(tabId, { code: css });
+}
+
+function removeTheBoardsBg(tabId, css) {
+    browser.tabs.removeCSS(tabId, { code: css });
+}
+
+/**
+ * BROKEN, no longer works Trello is doing something weird with their div class names! - Aug 21 2019
+ * This function sets the trello board tiles image links on the left area of the trello website. Iterates over the 
+ * elements until a matching board id is found and sets the image, then exits the loop.
+ */
+function setBoardTiles() {
+    'use strict';
+    browser.storage.local.get("backgroundsBoardList", function (items) {
+        var patt = new RegExp(/\/b\/([\d\w]+)\/[\S]+/i);
+        var compactBoardTilesList = document.querySelectorAll('li.compact-board-tile a.js-open-board');
+
+        for (var i = 0; i < items.backgroundsBoardList.length; i++) {
+            for (var k = 0; k < compactBoardTilesList.length; k++) {
+
+                var temp = compactBoardTilesList[k].getAttribute('href'),
+                    tempTrelloBoardId = '',
+                    matches = patt.exec(temp);
+
+                if (matches !== null) {
+                    tempTrelloBoardId = matches[1];
+                    if (tempTrelloBoardId === items.backgroundsBoardList[i].boardid) {
+                        var listElementThumbnail =
+                            compactBoardTilesList[k].querySelectorAll('span.compact-board-tile-link-thumbnail')[0];
+
+                        listElementThumbnail.style.backgroundImage = 'url(' + items.backgroundsBoardList[i].url + ')';
+                    }
+                }
+            }
+        }
+    });
 }
 
 /**
@@ -39,18 +88,20 @@ function inTheTrelloDomain(url, callback) {
  * This function initializes the storage for the board image urls. Previously I was
  * constantly checking if the array had been initialized i have since made so we only have to check in one area.
  */
-function initTrellozenLocalStorage() {
+function initTrellozenLocalStorage(callback) {
     browser.storage.local.get(["backgroundsBoardList"],
         function (item) {
             let isTrellozenLocalStorageInit = typeof item.backgroundsBoardList === 'undefined';
             if (isTrellozenLocalStorageInit) {
                 browser.storage.local.set({ backgroundsBoardList: [] }, function () {
                     console.log('The storage array has been initialized.');
+                    callback();
                 });
+            } else {
+                callback();
             }
         });
 }
-
 /**
  * This function is my handler function for the user's tab url is changed, due to the
  * way some websites behave like Trello for example, you cannot rely on the document ready function to run code
@@ -61,20 +112,25 @@ function initTrellozenLocalStorage() {
  */
 function handleTabOnUpdated(tabId, changeInfo, tab) {
     'use strict';
-    if (changeInfo.status === 'complete' && tab.status === 'complete') {
-        inTheTrelloDomain(tab.url, function () {
+    initTrellozenLocalStorage(function () {
+        parseTrelloBoardId(tab.url, function (parsedBoardid) {
+            browser.storage.local.get("backgroundsBoardList", function (items) {
 
-            initTrellozenLocalStorage();
+                if (changeInfo.status === 'complete') {
+                    let board = items.backgroundsBoardList.find(function (element) {
+                        return element.boardid.toString() === parsedBoardid.toString();
+                    });
 
-            var actionObj = { action: "getAndSetTheBackgroundImage" },
-                action2Obj = { action: "setBoardTiles" };
+                    if (typeof board !== 'undefined') {
+                        console.log(items.backgroundsBoardList);
+                        removeTheBoardsBg(tabId, board.css);
+                        setTheBoardsBg(tabId, board.css);
 
-
-            browser.tabs.sendMessage(tabId, actionObj);
-            // browser.tabs.sendMessage(tabId, action2Obj);
-
+                    }
+                }
+            });
         });
-    }
+    });
 }
 
 // assigning the function as a listener
@@ -83,7 +139,8 @@ if (browser.tabs.onUpdated.hasListener(handleTabOnUpdated) === false) {
         handleTabOnUpdated,
         {
             urls: ['https://*.trello.com/b/*'],
-            properties: ['status']
+            properties: ['status'],
+            windowId: browser.windows.WINDOW_ID_CURRENT
         });
 }
 
@@ -99,10 +156,10 @@ function handleMessage_background(request, sender, sendResponse) {
     'use strict';
     if (request.action === 'PARSE_BOARD_ID') {
         parseTrelloBoardId(request.obj, sendResponse);
-    } else if (request.action === 'SET_HAS_BG_IMAGE_BEEN_SET') {
-        setHasBgImageBeenSet(request.obj, sendResponse);
-    } else if (request.action === 'GET_HAS_BG_IMAGE_BEEN_SET') {
-        getHasBgImageBeenSet(sendResponse);
+    } else if (request.action === 'SET_BG') {
+        setTheBoardsBg(request.tabId, request.css);
+    } else if (request.action === 'SET_BOARD_TILES') {
+        // TODO
     }
 }
 
