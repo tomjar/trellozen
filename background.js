@@ -29,8 +29,16 @@ function parseTrelloBoardId(url, callback) {
     callback(trelloBoardId.toString());
 }
 
-function insertBoardCss(tabId, css) {
-    browser.tabs.insertCSS(tabId, { code: css });
+function insertBoardCss(tabId, boardId, css) {
+    browser.storage.local.get("backgroundsBoardList", function (items) {
+        let boardIndex = items.backgroundsBoardList.findIndex(function (element) {
+            return element.boardid.toString() === boardId.toString();
+        });
+
+        if (boardIndex !== -1) {
+            browser.tabs.insertCSS(tabId, { code: css });
+        }
+    });
 }
 
 function removeBoardCss(tabId, cssArr) {
@@ -72,21 +80,6 @@ function setBoardTiles() {
 }
 
 /**
- * This function determines if we are currently in the correct trello domain. This controls
- * whether or not the tab updated event should attempt to set the background.
- * @param {*} url the current browsers current url
- * @param {*} callback a callback function to run if we are indeed in the trello domain.
- */
-function inTheTrelloDomain(url, callback) {
-    'use strict';
-    var patt = new RegExp(/https:\/\/*.trello.com\/b\//i),
-        match = patt.exec(url);
-    if (match !== null) {
-        callback();
-    }
-}
-
-/**
  * This function initializes the storage for the board image urls. Previously I was
  * constantly checking if the array had been initialized i have since made so we only have to check in one area.
  */
@@ -96,7 +89,7 @@ function initTrellozenLocalStorage(callback) {
             let isTrellozenLocalStorageInit = typeof item.backgroundsBoardList === 'undefined';
             if (isTrellozenLocalStorageInit) {
                 browser.storage.local.set({ backgroundsBoardList: [] }, function () {
-                    console.log('The storage array has been initialized.');
+                    console.log('The local storage array has been initialized successfully.');
                     callback();
                 });
             } else {
@@ -126,12 +119,11 @@ function handleTabOnUpdated(tabId, changeInfo, tab) {
                             return element.css;
                         });
 
+                    removeBoardCss(tabId, boardCssArr);
+
                     if (typeof board !== 'undefined') {
                         console.log(items.backgroundsBoardList);
-                        removeBoardCss(tabId, boardCssArr);
-                        insertBoardCss(tabId, board.css);
-                    } else {
-                        removeBoardCss(tabId, boardCssArr);
+                        insertBoardCss(tabId, board.boardid, board.css);
                     }
                 }
             });
@@ -165,8 +157,8 @@ function handleMessage_background(request, sender, sendResponse) {
             parseTrelloBoardId(request.obj, sendResponse);
             break;
         }
-        case 'SET_BG': {
-            insertBoardCss(request.tabId, request.css);
+        case 'INSERT_CSS': {
+            insertBoardCss(request.tabId, request.boardid, request.css);
             break;
         }
         case 'SET_BOARD_TILES': {

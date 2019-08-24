@@ -54,10 +54,12 @@ function saveBackground(url) {
             } else {
                 // getting the storage array and adding the new bg image for this trello board
                 browser.storage.local.get("backgroundsBoardList", function (items) {
-                    let boardBackgroundUrlObj = {
+                    let boardBackgroundUrlObj =
+                    {
                         url: url,
                         boardid: parsedBoardId,
-                        css: `#trello-root { background: rgb(0, 0, 0) url("${url}") no-repeat scroll 0% 0% / 100% auto !important;}`
+                        css: `#trello-root { background: rgb(0, 0, 0) url("${url}") no-repeat scroll 0% 0% / 100% auto !important;}`,
+                        active: true
                     },
                         cssArr = items.backgroundsBoardList.map(function (element) {
                             return element.css;
@@ -75,13 +77,13 @@ function saveBackground(url) {
                             items.backgroundsBoardList.push(boardBackgroundUrlObj);
                         } else {
                             items.backgroundsBoardList[currentTzBoardBgIndex] = boardBackgroundUrlObj;
-                            browser.runtime.sendMessage({ action: "REMOVE_CSS", cssArr: cssArr, tabId: tabs[0].id });
+                            browser.runtime.sendMessage({ action: "REMOVE_CSS", boardid: boardBackgroundUrlObj.boardid, cssArr: cssArr, tabId: tabs[0].id });
                         }
 
                         console.log(items.backgroundsBoardList);
 
                         browser.storage.local.set({ backgroundsBoardList: items.backgroundsBoardList }, function () {
-                            browser.runtime.sendMessage({ action: "SET_BG", css: boardBackgroundUrlObj.css, tabId: tabs[0].id });
+                            browser.runtime.sendMessage({ action: "INSERT_CSS", boardid: boardBackgroundUrlObj.boardid, css: boardBackgroundUrlObj.css, tabId: tabs[0].id });
                         });
                     }
                 });
