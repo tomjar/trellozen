@@ -140,10 +140,6 @@ function handleMessage_background(request, sender, sendResponse) {
             insertBoardCss(request.tabId, request.boardid, request.css);
             break;
         }
-        case 'SET_BOARD_TILES': {
-            // TODO
-            break;
-        }
         case 'REMOVE_CSS': {
             removeBoardCss(request.tabId, request.cssArr);
             break;
