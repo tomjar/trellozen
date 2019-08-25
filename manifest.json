@@ -8,6 +8,16 @@
         "48": "icons/trellozen-48.png",
         "96": "icons/trellozen-96.png"
     },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://*.trello.com/b/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
     "page_action": {
         "browser_style": true,
         "default_icon": "icons/trellozen-32.png",

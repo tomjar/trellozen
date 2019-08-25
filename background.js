@@ -37,6 +37,7 @@ function insertBoardCss(tabId, boardId, css) {
 
         if (boardIndex !== -1) {
             browser.tabs.insertCSS(tabId, { code: css });
+            setBoardTiles(tabId);
         }
     });
 }
@@ -48,34 +49,13 @@ function removeBoardCss(tabId, cssArr) {
 }
 
 /**
- * BROKEN, no longer works Trello is doing something weird with their div class names! - Aug 21 2019
  * This function sets the trello board tiles image links on the left area of the trello website. Iterates over the 
  * elements until a matching board id is found and sets the image, then exits the loop.
  */
-function setBoardTiles() {
+function setBoardTiles(tabId) {
     'use strict';
-    browser.storage.local.get("backgroundsBoardList", function (items) {
-        var patt = new RegExp(/\/b\/([\d\w]+)\/[\S]+/i);
-        var compactBoardTilesList = document.querySelectorAll('li.compact-board-tile a.js-open-board');
-
-        for (var i = 0; i < items.backgroundsBoardList.length; i++) {
-            for (var k = 0; k < compactBoardTilesList.length; k++) {
-
-                var temp = compactBoardTilesList[k].getAttribute('href'),
-                    tempTrelloBoardId = '',
-                    matches = patt.exec(temp);
-
-                if (matches !== null) {
-                    tempTrelloBoardId = matches[1];
-                    if (tempTrelloBoardId === items.backgroundsBoardList[i].boardid) {
-                        var listElementThumbnail =
-                            compactBoardTilesList[k].querySelectorAll('span.compact-board-tile-link-thumbnail')[0];
-
-                        listElementThumbnail.style.backgroundImage = 'url(' + items.backgroundsBoardList[i].url + ')';
-                    }
-                }
-            }
-        }
+    browser.tabs.sendMessage(tabId, { action: "SET_BOARD_MENU_TILES" }, function (response) {
+        // console.log(response);
     });
 }
 
@@ -122,7 +102,6 @@ function handleTabOnUpdated(tabId, changeInfo, tab) {
                     removeBoardCss(tabId, boardCssArr);
 
                     if (typeof board !== 'undefined') {
-                        console.log(items.backgroundsBoardList);
                         insertBoardCss(tabId, board.boardid, board.css);
                     }
                 }
