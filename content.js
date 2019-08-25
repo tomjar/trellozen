@@ -15,7 +15,7 @@ function handleMessage_content(request, sender, sendResponse) {
                         let match = regexBoardId.exec(element.parentElement.href);
                         return {
                             divChild: element,
-                            boardId: typeof match === 'undefined' ? '' : match[1]
+                            boardId: typeof match === 'undefined' || match === null ? '' : match[1]
                         };
                     });
             browser.storage.local.get("backgroundsBoardList", function (item) {
