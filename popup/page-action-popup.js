@@ -38,9 +38,10 @@ document.addEventListener("click", function (event) {
 });
 
 /**
- * This function sends the necessary messages and call the logic which updates the background image and tiles for the current
- * Trello board.
- * @param {object} element the button that triggered the click
+ * This function sends the necessary messages and call the logic which updates the 
+ * background image and tiles for the current Trello board.
+ * 
+ * @param {String} url the button that triggered the click
  */
 function saveBackground(url) {
     'use strict';

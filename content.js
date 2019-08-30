@@ -1,9 +1,10 @@
 /**
- * This function is my message event listener that allows direct manipulation and access to the HTML
- * of the current tab.
- * @param {*} request this is a object contains the action to occur
- * @param {*} sender not used here but another parameter that contains the sender
- * @param {*} sendResponse this is a callback method, not used here but could be in the future
+ * This function is my message event listener that allows direct manipulation 
+ * and access to the HTML of the current tab.
+ * 
+ * @param {Object} request this is a object contains the action to occur
+ * @param {Object} sender not used here but another parameter that contains the sender
+ * @param {function} sendResponse this is a callback method, not used here but could be in the future
  */
 function handleMessage_content(request, sender, sendResponse) {
     'use strict';
@@ -36,7 +37,7 @@ function handleMessage_content(request, sender, sendResponse) {
     }
 }
 
-// Assign function listener as a listener for messages from the extension.
-// receives messages from showme.js and background.js to apply changes to the users browser
-// after certain actions and event occur
-browser.runtime.onMessage.addListener(handleMessage_content);
+
+if (browser.runtime.onMessage.hasListener(handleMessage_content) === false) {
+    browser.runtime.onMessage.addListener(handleMessage_content);
+}

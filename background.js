@@ -11,10 +11,22 @@ function outLog(obj) {
     console.log(tempObj);
 }
 
+browser.runtime.onInstalled.addListener(function () {
+    browser.storage.local.get(["backgroundsBoardList"],
+        function (item) {
+            if (typeof item.backgroundsBoardList === 'undefined') {
+                browser.storage.local.set({ backgroundsBoardList: [] }, function () {
+                    console.log('The local storage array has been initialized successfully.');
+                });
+            }
+        });
+});
+
 /**
  * This function retrieves the trello board id from the url provided.
- * @param {*} url the browsers current trello board url
- * @param {*} callback the send response is a callback function that sends back the boardid
+ * 
+ * @param {String} url the browsers current trello board url
+ * @param {function} callback the send response is a callback function that sends back the boardid
  */
 function parseTrelloBoardId(url, callback) {
     'use strict';
@@ -29,6 +41,13 @@ function parseTrelloBoardId(url, callback) {
     callback(trelloBoardId.toString());
 }
 
+/**
+ * TODO
+ * 
+ * @param {Number} tabId 
+ * @param {String} boardId 
+ * @param {String} css 
+ */
 function insertBoardCss(tabId, boardId, css) {
     browser.storage.local.get("backgroundsBoardList", function (items) {
         let boardIndex = items.backgroundsBoardList.findIndex(function (element) {
@@ -36,12 +55,19 @@ function insertBoardCss(tabId, boardId, css) {
         });
 
         if (boardIndex !== -1) {
-            browser.tabs.insertCSS(tabId, { code: css });
-            setBoardTiles(tabId);
+            browser.tabs.sendMessage(tabId, { action: "SET_BOARD_MENU_TILES" }, function (response) {
+                browser.tabs.insertCSS(tabId, { code: css });
+            });
         }
     });
 }
 
+/**
+ * TODO
+ * 
+ * @param {Number} tabId 
+ * @param {Array} cssArr 
+ */
 function removeBoardCss(tabId, cssArr) {
     for (let i = 0; i < cssArr.length; i++) {
         browser.tabs.removeCSS(tabId, { code: cssArr[i] });
@@ -49,63 +75,34 @@ function removeBoardCss(tabId, cssArr) {
 }
 
 /**
- * This function sets the trello board tiles image links on the left area of the trello website. Iterates over the 
- * elements until a matching board id is found and sets the image, then exits the loop.
- */
-function setBoardTiles(tabId) {
-    'use strict';
-    browser.tabs.sendMessage(tabId, { action: "SET_BOARD_MENU_TILES" }, function (response) {
-        // console.log(response);
-    });
-}
-
-/**
- * This function initializes the storage for the board image urls. Previously I was
- * constantly checking if the array had been initialized i have since made so we only have to check in one area.
- */
-function initTrellozenLocalStorage(callback) {
-    browser.storage.local.get(["backgroundsBoardList"],
-        function (item) {
-            let isTrellozenLocalStorageInit = typeof item.backgroundsBoardList === 'undefined';
-            if (isTrellozenLocalStorageInit) {
-                browser.storage.local.set({ backgroundsBoardList: [] }, function () {
-                    console.log('The local storage array has been initialized successfully.');
-                    callback();
-                });
-            } else {
-                callback();
-            }
-        });
-}
-/**
  * This function is my handler function for the user's tab url is changed, due to the
- * way some websites behave like Trello for example, you cannot rely on the document ready function to run code
- * each time the user clicks something. This allows better control execution of the background image and board tiles.
- * @param {*} tabId the current tabid
- * @param {*} changeInfo a object with some helpful attributes/values
- * @param {*} tab the current tab object
+ * way some websites behave like Trello for example, you cannot rely on the document 
+ * ready function to run code each time the user clicks something. This allows better 
+ * control execution of the background image and board tiles.
+ * 
+ * @param {Number} tabId the current tabid
+ * @param {Object} changeInfo a object with some helpful attributes/values
+ * @param {Object} tab the current tab object
  */
 function handleTabOnUpdated(tabId, changeInfo, tab) {
     'use strict';
-    initTrellozenLocalStorage(function () {
-        parseTrelloBoardId(tab.url, function (parsedBoardid) {
-            browser.storage.local.get("backgroundsBoardList", function (items) {
+    parseTrelloBoardId(tab.url, function (parsedBoardid) {
+        browser.storage.local.get("backgroundsBoardList", function (items) {
 
-                if (changeInfo.status === 'complete') {
-                    let board = items.backgroundsBoardList.find(function (element) {
-                        return element.boardid.toString() === parsedBoardid.toString();
-                    }),
-                        boardCssArr = items.backgroundsBoardList.map(function (element) {
-                            return element.css;
-                        });
+            if (changeInfo.status === 'complete') {
+                let board = items.backgroundsBoardList.find(function (element) {
+                    return element.boardid.toString() === parsedBoardid.toString();
+                }),
+                    boardCssArr = items.backgroundsBoardList.map(function (element) {
+                        return element.css;
+                    });
 
-                    removeBoardCss(tabId, boardCssArr);
+                removeBoardCss(tabId, boardCssArr);
 
-                    if (typeof board !== 'undefined') {
-                        insertBoardCss(tabId, board.boardid, board.css);
-                    }
+                if (typeof board !== 'undefined') {
+                    insertBoardCss(tabId, board.boardid, board.css);
                 }
-            });
+            }
         });
     });
 }
@@ -124,9 +121,10 @@ if (browser.tabs.onUpdated.hasListener(handleTabOnUpdated) === false) {
 /**
  * This function receives messages from content.js
  * Recieves a object with a action, the action determines what happens.
- * @param request: a object containing a action and other values.
- * @param {?} sender
- * @param sendResponse: a value that is consumed by the requestee.
+ * 
+ * @param {Object} request: a object containing a action and other values.
+ * @param {Object} sender
+ * @param {function} sendResponse: a value that is consumed by the requestee.
  * @return void
  */
 function handleMessage_background(request, sender, sendResponse) {
